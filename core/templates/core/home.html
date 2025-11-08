@@ -1,0 +1,22 @@
+{% extends "core/base.html" %}
+
+{% block content %}
+<div>
+    <form action="{% url 'shorten' %}" method="post">
+        {% csrf_token %}
+        {{ form.as_p }}
+        <button type="submit">Shorten</button>
+    </form>
+</div>
+
+<hr>
+<ul>
+    {% for entry in entries %}
+        <li>
+            {{ entry.code }}
+        </li>
+    {% empty %}
+        <li>No links have been shortened yet.</li>
+    {% endfor %}
+</ul>
+{% endblock %}
