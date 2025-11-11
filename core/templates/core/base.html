@@ -6,6 +6,12 @@
     <title>URL shortener</title>
 </head>
 <body>
+    <header>
+        <h1>
+            <a href="{% url 'home' %}">URL shortener</a>
+        </h1>
+        <hr>
+    </header>
     {% block content %}
     {% endblock %}
 </body>

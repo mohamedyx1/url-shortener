@@ -9,11 +9,10 @@
     </form>
 </div>
 
-<hr>
 <ul>
     {% for entry in entries %}
         <li>
-            {{ entry.code }}
+            <a href="{{ entry.get_absolute_url }}" title="view details">{{ entry.code }}</a>
         </li>
     {% empty %}
         <li>No links have been shortened yet.</li>

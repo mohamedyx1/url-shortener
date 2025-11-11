@@ -24,3 +24,7 @@ def shorten(request):
 def redirect_entry(request, code):
     entry = get_object_or_404(Entry, code=code)
     return redirect(entry.url)
+
+def detail(request, code):
+    entry = get_object_or_404(Entry, code=code)
+    return render(request, "core/detail.html", {"entry": entry})
