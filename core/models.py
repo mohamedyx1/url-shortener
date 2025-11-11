@@ -8,6 +8,7 @@ from django.urls import reverse
 class Entry(models.Model):
     url = models.URLField()
     code = models.CharField(max_length=8)
+    hits = models.PositiveIntegerField(default=0)
 
     def save(self, *args, **kwargs):
         if not self.code:

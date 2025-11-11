@@ -1,3 +1,4 @@
+from django.db.models import F
 from django.shortcuts import get_object_or_404, redirect, render
 from django.urls import reverse
 from django.views.decorators.http import require_POST
@@ -23,6 +24,8 @@ def shorten(request):
 
 def redirect_entry(request, code):
     entry = get_object_or_404(Entry, code=code)
+    entry.hits = F("hits") + 1
+    entry.save()
     return redirect(entry.url)
 
 
