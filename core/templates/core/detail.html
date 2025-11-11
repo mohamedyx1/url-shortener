@@ -4,5 +4,9 @@
 <div>
     <p>code: {{ entry.code }}</p>
     <p>url: {{ entry.url }}</p>
+    <form action="{% url 'delete' entry.code %}" method="post">
+        {% csrf_token %}
+        <button type="submit">delete</button>
+    </form>
 </div>
 {% endblock %}
