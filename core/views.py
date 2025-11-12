@@ -1,3 +1,5 @@
+import hashlib
+
 from django.db.models import F
 from django.shortcuts import get_object_or_404, redirect, render
 from django.urls import reverse
@@ -17,8 +19,11 @@ def home(request):
 def shorten(request):
     form = Shorten(request.POST)
     if form.is_valid():
-        form.save()
-        return redirect(reverse("home"))
+        url = form.cleaned_data["url"]
+        code = hashlib.md5(url.encode(), usedforsecurity=False).hexdigest()[:8]
+        entry, _ = Entry.objects.get_or_create(code=code, defaults={"url": url})
+        return redirect(entry)
+    # FIXME: this doesn't work, as there's no shorten template
     return render(request, "core/shorten.html", {"form": form})
 
 
