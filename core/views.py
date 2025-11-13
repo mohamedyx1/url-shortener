@@ -9,7 +9,7 @@ from django.urls import reverse
 from django.views.decorators.http import require_POST
 
 from .forms import Shorten
-from .models import Entry
+from .models import Entry, Visit
 
 
 def home(request):
@@ -32,8 +32,6 @@ def shorten(request):
 
 def redirect_entry(request, code):
     entry = get_object_or_404(Entry, code=code)
-    entry.hits = F("hits") + 1
-    entry.save()
 
     # determine the user's country from their IP address
     if settings.DEBUG:
@@ -57,7 +55,7 @@ def redirect_entry(request, code):
         country = data.get("country", "Unknown")
     except requests.RequestException:
         country = "Unknown"
-    print(f"Visitor IP: {ip}, Country: {country}")
+    Visit.objects.create(entry=entry, ip=ip, country=country)
     return redirect(entry.url)
 
 
