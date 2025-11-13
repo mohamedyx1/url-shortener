@@ -1,5 +1,8 @@
 import hashlib
+import random
 
+import requests
+from django.conf import settings
 from django.db.models import F
 from django.shortcuts import get_object_or_404, redirect, render
 from django.urls import reverse
@@ -31,6 +34,30 @@ def redirect_entry(request, code):
     entry = get_object_or_404(Entry, code=code)
     entry.hits = F("hits") + 1
     entry.save()
+
+    # determine the user's country from their IP address
+    if settings.DEBUG:
+        ip = random.choice(
+            [
+                "147.45.216.198",
+                "207.154.196.160",
+                "176.126.103.194",
+                "219.93.101.63",
+                "190.58.248.86",
+                "179.96.28.58",
+            ]
+        )
+    else:
+        ip = request.META.get("REMOTE_ADDR", "xxx")
+    try:
+        # TODO: cache results to avoid excessive requests
+        r = requests.get(f"https://ipinfo.io/{ip}/json")
+        r.raise_for_status()
+        data = r.json()
+        country = data.get("country", "Unknown")
+    except requests.RequestException:
+        country = "Unknown"
+    print(f"Visitor IP: {ip}, Country: {country}")
     return redirect(entry.url)
 
 
