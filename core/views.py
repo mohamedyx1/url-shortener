@@ -3,7 +3,7 @@ import random
 
 import requests
 from django.conf import settings
-from django.db.models import F
+from django.db.models import Count
 from django.shortcuts import get_object_or_404, redirect, render
 from django.urls import reverse
 from django.views.decorators.http import require_POST
@@ -61,7 +61,12 @@ def redirect_entry(request, code):
 
 def detail(request, code):
     entry = get_object_or_404(Entry, code=code)
-    return render(request, "core/detail.html", {"entry": entry})
+    visits_by_country = entry.visits.values("country").annotate(Count("ip"))
+    return render(
+        request,
+        "core/detail.html",
+        {"entry": entry, "visits_by_country": visits_by_country},
+    )
 
 
 @require_POST

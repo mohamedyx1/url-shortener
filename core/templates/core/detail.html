@@ -1,13 +1,18 @@
 {% extends "core/base.html" %}
 
 {% block content %}
-<div>
-    <p>code: {{ entry.code }}</p>
-    <p>url: {{ entry.url }}</p>
-    <p>visits: {{ entry.visits.count }}</p>
-    <form action="{% url 'delete' entry.code %}" method="post">
-        {% csrf_token %}
-        <button type="submit">delete</button>
-    </form>
+<div style="display: flex;">
+    <div>
+        <p>code: {{ entry.code }}</p>
+        <p>url: {{ entry.url }}</p>
+        <p>visits: {{ entry.visits.count }}</p>
+        <form action="{% url 'delete' entry.code %}" method="post">
+            {% csrf_token %}
+            <button type="submit">delete</button>
+        </form>
+    </div>
+    <!-- chart -->
+    <div id="regions_div" style="width: 600px; height: 400px;"></div>
+    {% include "core/geochart.html" with visits_by_country=visits_by_country %}
 </div>
 {% endblock %}
