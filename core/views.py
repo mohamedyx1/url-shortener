@@ -3,6 +3,7 @@ import random
 
 import requests
 from django.conf import settings
+from django.core.cache import cache
 from django.db.models import Count
 from django.shortcuts import get_object_or_404, redirect, render
 from django.urls import reverse
@@ -30,6 +31,23 @@ def shorten(request):
     return render(request, "core/shorten.html", {"form": form})
 
 
+def get_country_from_ip(ip):
+    country = cache.get(ip)
+    if country is not None:
+        print("found country in cache")
+        return country
+    try:
+        print("getting country from api")
+        r = requests.get(f"https://ipinfo.io/{ip}/json")
+        r.raise_for_status()
+        data = r.json()
+        country = data.get("country", "Unknown")
+        cache.set(ip, country)
+    except requests.RequestException:
+        country = "Unknown"
+    return country
+
+
 def redirect_entry(request, code):
     entry = get_object_or_404(Entry, code=code)
 
@@ -47,14 +65,8 @@ def redirect_entry(request, code):
         )
     else:
         ip = request.META.get("REMOTE_ADDR", "xxx")
-    try:
-        # TODO: cache results to avoid excessive requests
-        r = requests.get(f"https://ipinfo.io/{ip}/json")
-        r.raise_for_status()
-        data = r.json()
-        country = data.get("country", "Unknown")
-    except requests.RequestException:
-        country = "Unknown"
+
+    country = get_country_from_ip(ip)
     Visit.objects.create(entry=entry, ip=ip, country=country)
     return redirect(entry.url)
 
