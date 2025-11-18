@@ -6,6 +6,8 @@ name = "pypi"
 [packages]
 django = "*"
 requests = "*"
+redis = "*"
+hiredis = "*"
 
 [dev-packages]
 
