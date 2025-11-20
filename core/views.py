@@ -1,7 +1,6 @@
 import hashlib
 import random
 
-import requests
 from django.conf import settings
 from django.core.cache import cache
 from django.db.models import Count
@@ -11,6 +10,7 @@ from django.views.decorators.http import require_POST
 
 from .forms import Shorten
 from .models import Entry, Visit
+from .tasks import get_country_from_ip
 
 
 def home(request):
@@ -31,23 +31,6 @@ def shorten(request):
     return render(request, "core/shorten.html", {"form": form})
 
 
-def get_country_from_ip(ip):
-    country = cache.get(ip)
-    if country is not None:
-        print("found country in cache")
-        return country
-    try:
-        print("getting country from api")
-        r = requests.get(f"https://ipinfo.io/{ip}/json")
-        r.raise_for_status()
-        data = r.json()
-        country = data.get("country", "Unknown")
-        cache.set(ip, country)
-    except requests.RequestException:
-        country = "Unknown"
-    return country
-
-
 def redirect_entry(request, code):
     entry = get_object_or_404(Entry, code=code)
 
@@ -66,8 +49,12 @@ def redirect_entry(request, code):
     else:
         ip = request.META.get("REMOTE_ADDR", "xxx")
 
-    country = get_country_from_ip(ip)
-    Visit.objects.create(entry=entry, ip=ip, country=country)
+    country = cache.get(ip, "")
+    if country:
+        print(f"found country in cache | {ip=} | {country=}")
+    visit = Visit.objects.create(entry=entry, ip=ip, country=country)
+    if not country:
+        get_country_from_ip.apply_async(countdown=10, args=(visit.pk,))
     return redirect(entry.url)
 
 
